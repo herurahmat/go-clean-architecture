@@ -48,13 +48,15 @@ func TestGetDataAuthor(t *testing.T) {
 	t.Run("success check data", func(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Len(t, list, 3)
-		assert.Equal(t, "Book 1", list[0].Name)
+		assert.Equal(t, "Author 1", list[0].Name)
 	})
 }
 
 func TestStoreAuthor(t *testing.T) {
-	ar := &author.AuthorModel{
-		Id:   helper.CreateNewUUID(),
+	uuid := helper.CreateNewUUID()
+
+	ar := author.AuthorModel{
+		Id:   uuid,
 		Name: "Author 1",
 	}
 	db, mock, err := sqlmock.New()
@@ -62,9 +64,9 @@ func TestStoreAuthor(t *testing.T) {
 		t.Fatalf("error '%s'", err)
 	}
 
-	query := "INSERT authors SET name=?"
+	query := "INSERT authors SET id=?,name=?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(ar.Name)
+	prep.ExpectExec().WithArgs(uuid, ar.Name)
 
 	a := NewAuthorRepository(db)
 
@@ -79,7 +81,7 @@ func TestStoreAuthor(t *testing.T) {
 }
 
 func TestUpdateAuthor(t *testing.T) {
-	ar := &author.AuthorModel{
+	ar := author.AuthorModel{
 		Id:   "123",
 		Name: "Author 1",
 	}
@@ -90,39 +92,39 @@ func TestUpdateAuthor(t *testing.T) {
 
 	query := "update authors SET name=? WHERE id=?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(ar.Name, ar.Id)
+	prep.ExpectExec().WithArgs(ar.Name, ar.Id).WillReturnResult(sqlmock.NewResult(123, 1))
 
 	a := NewAuthorRepository(db)
 
-	res, err := a.Update(context.TODO(), ar)
+	res, err := a.Update(context.TODO(), string(ar.Id), ar)
 
 	t.Run("Success update author", func(t *testing.T) {
-		assert.True(t, true)
 		assert.NotEmpty(t, res)
 	})
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }
 
 func TestDeleteAuthor(t *testing.T) {
-	ar := &author.AuthorModel{
-		Id: "123",
+	ar := author.AuthorModel{
+		Id:   "123",
+		Name: "Author 1",
 	}
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("error '%s'", err)
 	}
 
-	query := "delete authors WHERE id=?"
-	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(ar.Id)
+	query := "DELETE FROM authors WHERE id = ?"
+	prep := mock.ExpectPrepare(query)
+	prep.ExpectExec().WithArgs(ar.Id).WillReturnResult(sqlmock.NewResult(123, 1))
 
 	a := NewAuthorRepository(db)
 
-	err = a.Delete(context.TODO(), ar.Id)
+	status, err := a.Delete(context.TODO(), string(ar.Id))
 
-	t.Run("Success update author", func(t *testing.T) {
-		assert.True(t, true)
+	t.Run("Success delete author", func(t *testing.T) {
+		assert.True(t, status)
 	})
 
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }

@@ -98,21 +98,21 @@ func (r *repository) FindByName(ctx context.Context, name string) (result book.B
 	return
 }
 
-func (r *repository) Create(ctx context.Context, dataAuthor *author.AuthorModel, dataEntity *book.BookModel) (*book.BookModel, error) {
-	query := `INSERT books SET name=?`
+func (r *repository) Create(ctx context.Context, dataAuthor author.AuthorModel, dataEntity book.BookModel) (book.BookModel, error) {
+	query := `INSERT books SET name=?,author_id=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		return dataEntity, err
 	}
 
-	_, err = stmt.ExecContext(ctx, dataEntity.Title)
+	_, err = stmt.ExecContext(ctx, dataEntity.Title, dataAuthor.Id)
 	if err != nil {
 		return dataEntity, err
 	}
 	return dataEntity, nil
 }
 
-func (r *repository) Update(ctx context.Context, dataAuthor *author.AuthorModel, dataEntity *book.BookModel) (*book.BookModel, error) {
+func (r *repository) Update(ctx context.Context, dataAuthor author.AuthorModel, dataEntity book.BookModel) (book.BookModel, error) {
 	query := `update  books SET name=?,author_id=? WHERE id=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -126,16 +126,27 @@ func (r *repository) Update(ctx context.Context, dataAuthor *author.AuthorModel,
 	return dataEntity, nil
 }
 
-func (r *repository) Delete(ctx context.Context, id string) (err error) {
-	query := "delete books WHERE id=?"
+func (r *repository) Delete(ctx context.Context, id string) (status bool, err error) {
+	query := "DELETE FROM books WHERE id = ?"
 	stmt, err := r.db.PrepareContext(ctx, string(query))
 	if err != nil {
-		return
+		return false, err
 	}
 
-	_, err = stmt.ExecContext(ctx, id)
+	result, err := stmt.ExecContext(ctx, id)
+
 	if err != nil {
-		return err
+		return false, err
 	}
-	return nil
+
+	rowsAfected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	if rowsAfected != 1 {
+		return false, nil
+	}
+
+	return true, nil
 }

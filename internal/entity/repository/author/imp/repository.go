@@ -3,6 +3,7 @@ package imp
 import (
 	"context"
 	"database/sql"
+	"github.com/herurahmat/go-clean-architecture/internal/helper"
 	"log"
 
 	"github.com/herurahmat/go-clean-architecture/internal/entity/author"
@@ -87,44 +88,57 @@ func (r *repository) FindByName(ctx context.Context, name string) (result author
 	return
 }
 
-func (r *repository) Create(ctx context.Context, dataEntity *author.AuthorModel) (*author.AuthorModel, error) {
-	query := `INSERT authors SET name=?`
+func (r *repository) Create(ctx context.Context, dataEntity author.AuthorModel) (author.AuthorModel, error) {
+	uuid := helper.CreateNewUUID()
+	query := `INSERT authors SET id=?,name=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		return dataEntity, err
 	}
 
-	_, err = stmt.ExecContext(ctx, dataEntity.Name)
+	_, err = stmt.ExecContext(ctx, uuid, dataEntity.Name)
 	if err != nil {
 		return dataEntity, err
 	}
+
 	return dataEntity, nil
 }
 
-func (r *repository) Update(ctx context.Context, dataEntity *author.AuthorModel) (*author.AuthorModel, error) {
+func (r *repository) Update(ctx context.Context, id string, dataEntity author.AuthorModel) (author.AuthorModel, error) {
 	query := `update  authors SET name=? WHERE id=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		return dataEntity, err
 	}
 
-	_, err = stmt.ExecContext(ctx, dataEntity.Name, dataEntity.Id)
+	_, err = stmt.ExecContext(ctx, dataEntity.Name, id)
 	if err != nil {
 		return dataEntity, err
 	}
 	return dataEntity, nil
 }
 
-func (r *repository) Delete(ctx context.Context, id string) (err error) {
-	query := "delete authors WHERE id=?"
+func (r *repository) Delete(ctx context.Context, id string) (status bool, err error) {
+	query := "DELETE FROM authors WHERE id = ?"
 	stmt, err := r.db.PrepareContext(ctx, string(query))
 	if err != nil {
-		return
+		return false, err
 	}
 
-	_, err = stmt.ExecContext(ctx, id)
+	result, err := stmt.ExecContext(ctx, id)
+
 	if err != nil {
-		return err
+		return false, err
 	}
-	return nil
+
+	rowsAfected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	if rowsAfected != 1 {
+		return false, nil
+	}
+
+	return true, nil
 }

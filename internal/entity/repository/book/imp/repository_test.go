@@ -2,6 +2,7 @@ package imp
 
 import (
 	"context"
+	"log"
 	"regexp"
 	"testing"
 
@@ -54,7 +55,7 @@ func TestGetDataBook(t *testing.T) {
 		},
 	}
 
-	rows := sqlmock.NewRows([]string{"id", "title", "book_author_id", "book_author_name"}).
+	rows := sqlmock.NewRows([]string{"id", "title", "author_id", "author_name"}).
 		AddRow(mockBook[0].Id, mockBook[0].Title, mockBook[0].GetBookAuthorId(), mockBook[0].GetBookAuthorName()).
 		AddRow(mockBook[1].Id, mockBook[1].Title, mockBook[1].GetBookAuthorId(), mockBook[1].GetBookAuthorName()).
 		AddRow(mockBook[1].Id, mockBook[1].Title, mockBook[1].GetBookAuthorId(), mockBook[1].GetBookAuthorName())
@@ -79,7 +80,7 @@ func TestStoreBook(t *testing.T) {
 		Id:   helper.CreateNewUUID(),
 		Name: "Author 1",
 	}
-	mockBook := &book.BookModel{
+	mockBook := book.BookModel{
 		Id:    helper.CreateNewUUID(),
 		Title: "Book 1",
 	}
@@ -88,13 +89,13 @@ func TestStoreBook(t *testing.T) {
 		t.Fatalf("error '%s'", err)
 	}
 
-	query := "INSERT books SET name=?"
+	query := "INSERT books SET name=?,author_id=?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
 	prep.ExpectExec().WithArgs(mockBook.Title)
 
 	a := NewBookRepository(db)
 
-	res, err := a.Create(context.TODO(), &mockAuthor, mockBook)
+	res, err := a.Create(context.TODO(), mockAuthor, mockBook)
 
 	t.Run("Success Insert book", func(t *testing.T) {
 		assert.True(t, true)
@@ -111,7 +112,7 @@ func TestUpdateBook(t *testing.T) {
 		Name: "Author 2",
 	}
 
-	mockBook := &book.BookModel{
+	mockBook := book.BookModel{
 		Id:    "123",
 		Title: "Book 1",
 	}
@@ -122,11 +123,11 @@ func TestUpdateBook(t *testing.T) {
 
 	query := "update books SET name=?,author_id=? WHERE id=?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(mockBook.Title, mockAuthor.GetAuthorId, mockBook.GetBookId)
+	prep.ExpectExec().WithArgs(mockBook.Title, mockAuthor.GetAuthorId, mockBook.GetBookId).WillReturnResult(sqlmock.NewResult(123, 1))
 
 	a := NewBookRepository(db)
 
-	res, err := a.Update(context.TODO(), &mockAuthor, mockBook)
+	res, err := a.Update(context.TODO(), mockAuthor, mockBook)
 
 	t.Run("Success update book", func(t *testing.T) {
 		assert.True(t, true)
@@ -144,17 +145,17 @@ func TestDeleteBook(t *testing.T) {
 		t.Fatalf("error '%s'", err)
 	}
 
-	query := "delete books WHERE id=?"
+	query := "DELETE FROM books WHERE id = ?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(ar.Id)
+	prep.ExpectExec().WithArgs(ar.Id).WillReturnResult(sqlmock.NewResult(123, 1))
 
 	a := NewBookRepository(db)
 
-	err = a.Delete(context.TODO(), ar.Id)
-
+	status, err := a.Delete(context.TODO(), string(ar.Id))
+	log.Println("ERR ", err, " STATUS", status)
 	t.Run("Success update book", func(t *testing.T) {
-		assert.True(t, true)
+		assert.True(t, status)
 	})
 
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }

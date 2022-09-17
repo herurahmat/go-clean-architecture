@@ -12,8 +12,8 @@ type http struct {
 	port string
 }
 
-type database struct {
-	dsn             string
+type Database struct {
+	Dsn             string
 	MaxIdleConns    int
 	MaxOpenConns    int
 	ConnMaxLifetime time.Duration
@@ -21,7 +21,7 @@ type database struct {
 
 type Config struct {
 	Server   http
-	Database database
+	Database Database
 }
 
 func New() (*Config, error) {
@@ -35,8 +35,8 @@ func New() (*Config, error) {
 			ip:   os.Getenv("APP_IP"),
 			port: os.Getenv("APP_PORT"),
 		},
-		Database: database{
-			dsn:             os.Getenv("DB_DSN"),
+		Database: Database{
+			Dsn:             os.Getenv("DB_DSN"),
 			MaxIdleConns:    cast.ToInt(os.Getenv("DB_MAX_IDLE_CONNS")),
 			MaxOpenConns:    cast.ToInt(os.Getenv("DB_MAX_OPEN_CONNS")),
 			ConnMaxLifetime: time.Duration(cast.ToInt(os.Getenv("DB_CONN_MAX_LIFETIME_MINUTES"))) * time.Minute,
