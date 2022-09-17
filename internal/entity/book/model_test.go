@@ -1,39 +1,33 @@
 package book
 
 import (
-	"github.com/herurahmat/go-clean-architecture/internal/entity/author"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateNewBook(t *testing.T) {
 
-	newAuthor := author.CreateNewAuthor("Hamka")
-
-	action := CreateNewBook("Terkilirnya Kapal Van Der Wjick", *newAuthor)
+	newBook := CreateNewBook("Tenggelamnya Kapal Van Der Wjick")
 
 	t.Run("failed", func(t *testing.T) {
-		assert.NotEqual(t, "Tenggelamnya Kapal Van Der Wjick", action.GetBookTitle())
-		assert.NotEqual(t, "Bang Toyib", action.Author.GetAuthorName())
+		assert.NotEqual(t, "Terkilirnya Kapal Van Der Wjick", newBook.GetBookTitle())
 	})
 
 	t.Run("success", func(t *testing.T) {
-		assert.Equal(t, "Terkilirnya Kapal Van Der Wjick", action.GetBookTitle())
-		assert.Equal(t, "Hamka", action.Author.GetAuthorName())
+		assert.Equal(t, "Tenggelamnya Kapal Van Der Wjick", newBook.GetBookTitle())
 	})
 
 }
 
 func TestGetAttributes(t *testing.T) {
-	newAuthor := author.CreateNewAuthor("Hamka")
-	action := CreateNewBook("Terkilirnya Kapal Van Der Wjick", *newAuthor)
+	newBook := CreateNewBook("Tenggelamnya Kapal Van Der Wjick")
 
-	assert.Equal(t, "Terkilirnya Kapal Van Der Wjick", action.GetBookTitle())
+	assert.Equal(t, "Tenggelamnya Kapal Van Der Wjick", newBook.GetBookTitle())
 }
 
-func TestGetAuthorId(t *testing.T) {
-	newAuthor := author.CreateNewAuthor("Hamka")
-	action := CreateNewBook("New Real Title", *newAuthor)
+func TestGetBookId(t *testing.T) {
+	newBook := CreateNewBook("Hamka")
 
-	assert.NotNil(t, action.GetBookId())
+	assert.NotNil(t, newBook.GetBookId())
 }
