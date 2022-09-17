@@ -2,12 +2,13 @@ package imp
 
 import (
 	"context"
+	"regexp"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/herurahmat/go-clean-architecture/internal/entity/author"
 	"github.com/herurahmat/go-clean-architecture/internal/helper"
 	"github.com/stretchr/testify/assert"
-	"regexp"
-	"testing"
 )
 
 func TestGetDataAuthor(t *testing.T) {
@@ -19,15 +20,15 @@ func TestGetDataAuthor(t *testing.T) {
 	mockAuthor := []author.AuthorModel{
 		author.AuthorModel{
 			Id:   helper.CreateNewUUID(),
-			Name: "Book 1",
+			Name: "Author 1",
 		},
 		author.AuthorModel{
 			Id:   helper.CreateNewUUID(),
-			Name: "Book 2",
+			Name: "Author 2",
 		},
 		author.AuthorModel{
 			Id:   helper.CreateNewUUID(),
-			Name: "Book 2",
+			Name: "Author 2",
 		},
 	}
 
@@ -36,7 +37,7 @@ func TestGetDataAuthor(t *testing.T) {
 		AddRow(mockAuthor[1].Id, mockAuthor[1].Name).
 		AddRow(mockAuthor[2].Id, mockAuthor[2].Name)
 
-	query := "select * from ?"
+	query := "select * from authors"
 
 	mock.ExpectQuery(regexp.QuoteMeta(query)).WillReturnRows(rows)
 
@@ -54,47 +55,52 @@ func TestGetDataAuthor(t *testing.T) {
 func TestStoreAuthor(t *testing.T) {
 	ar := &author.AuthorModel{
 		Id:   helper.CreateNewUUID(),
-		Name: "Book 1",
+		Name: "Author 1",
 	}
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("error '%s'", err)
 	}
 
-	query := "INSERT ? SET name=?"
+	query := "INSERT authors SET name=?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(ar.GetTableName(), ar.Name)
+	prep.ExpectExec().WithArgs(ar.Name)
 
 	a := NewAuthorRepository(db)
 
-	err = a.Create(context.TODO(), ar)
+	res, err := a.Create(context.TODO(), ar)
 
 	t.Run("Success Insert author", func(t *testing.T) {
 		assert.True(t, true)
+		assert.NotEmpty(t, res)
 	})
+	assert.NotNil(t, err)
+
 }
 
 func TestUpdateAuthor(t *testing.T) {
 	ar := &author.AuthorModel{
 		Id:   "123",
-		Name: "Book 1",
+		Name: "Author 1",
 	}
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("error '%s'", err)
 	}
 
-	query := "update  ? SET name=? WHERE id=?"
+	query := "update authors SET name=? WHERE id=?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(ar.GetTableName(), ar.Name, ar.Id)
+	prep.ExpectExec().WithArgs(ar.Name, ar.Id)
 
 	a := NewAuthorRepository(db)
 
-	err = a.Create(context.TODO(), ar)
+	res, err := a.Update(context.TODO(), ar)
 
 	t.Run("Success update author", func(t *testing.T) {
 		assert.True(t, true)
+		assert.NotEmpty(t, res)
 	})
+	assert.NotNil(t, err)
 }
 
 func TestDeleteAuthor(t *testing.T) {
@@ -106,15 +112,17 @@ func TestDeleteAuthor(t *testing.T) {
 		t.Fatalf("error '%s'", err)
 	}
 
-	query := "delete ? WHERE id=?"
+	query := "delete authors WHERE id=?"
 	prep := mock.ExpectPrepare(regexp.QuoteMeta(query))
-	prep.ExpectExec().WithArgs(ar.GetTableName(), ar.Id)
+	prep.ExpectExec().WithArgs(ar.Id)
 
 	a := NewAuthorRepository(db)
 
-	err = a.Create(context.TODO(), ar)
+	err = a.Delete(context.TODO(), ar.Id)
 
 	t.Run("Success update author", func(t *testing.T) {
 		assert.True(t, true)
 	})
+
+	assert.NotNil(t, err)
 }

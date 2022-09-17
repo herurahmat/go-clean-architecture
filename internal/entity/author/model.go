@@ -23,7 +23,3 @@ func CreateNewAuthor(name string) *AuthorModel {
 		Name: name,
 	}
 }
-
-func (am *AuthorModel) GetTableName() string {
-	return "authors"
-}

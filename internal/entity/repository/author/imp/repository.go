@@ -3,8 +3,9 @@ package imp
 import (
 	"context"
 	"database/sql"
-	"github.com/herurahmat/go-clean-architecture/internal/entity/author"
 	"log"
+
+	"github.com/herurahmat/go-clean-architecture/internal/entity/author"
 )
 
 type repository struct {
@@ -18,8 +19,7 @@ func NewAuthorRepository(db *sql.DB) *repository {
 }
 
 func (r *repository) Get(ctx context.Context) (result []author.AuthorModel, err error) {
-	ett := author.AuthorModel{}
-	rows, err := r.db.QueryContext(ctx, "select * from ?", ett.GetTableName())
+	rows, err := r.db.QueryContext(ctx, "select * from authors")
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -46,8 +46,7 @@ func (r *repository) Get(ctx context.Context) (result []author.AuthorModel, err 
 }
 
 func (r *repository) FindById(ctx context.Context, id string) (result author.AuthorModel, err error) {
-	entity := author.AuthorModel{}
-	query := "select * from ? WHERE id = ?"
+	query := "select * from authors WHERE id = ?"
 
 	statement, err := r.db.PrepareContext(ctx, string(query))
 
@@ -55,7 +54,7 @@ func (r *repository) FindById(ctx context.Context, id string) (result author.Aut
 		return author.AuthorModel{}, err
 	}
 
-	row := statement.QueryRowContext(ctx, entity.GetTableName(), id)
+	row := statement.QueryRowContext(ctx, id)
 
 	result = author.AuthorModel{}
 
@@ -68,8 +67,7 @@ func (r *repository) FindById(ctx context.Context, id string) (result author.Aut
 }
 
 func (r *repository) FindByName(ctx context.Context, name string) (result author.AuthorModel, err error) {
-	entity := author.AuthorModel{}
-	query := "select * from ? WHERE name LIKE '%?%'"
+	query := "select * from authors WHERE name LIKE '%?%'"
 
 	statement, err := r.db.PrepareContext(ctx, string(query))
 
@@ -77,7 +75,7 @@ func (r *repository) FindByName(ctx context.Context, name string) (result author
 		return author.AuthorModel{}, err
 	}
 
-	row := statement.QueryRowContext(ctx, entity.GetTableName(), name)
+	row := statement.QueryRowContext(ctx, name)
 
 	result = author.AuthorModel{}
 
@@ -89,47 +87,44 @@ func (r *repository) FindByName(ctx context.Context, name string) (result author
 	return
 }
 
-func (r *repository) Create(ctx context.Context, author *author.AuthorModel) (err error) {
-
-	query := `INSERT  ? SET name=?`
+func (r *repository) Create(ctx context.Context, dataEntity *author.AuthorModel) (*author.AuthorModel, error) {
+	query := `INSERT authors SET name=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
-		return
+		return dataEntity, err
 	}
 
-	_, err = stmt.ExecContext(ctx, author.GetTableName(), author.Name)
+	_, err = stmt.ExecContext(ctx, dataEntity.Name)
 	if err != nil {
-		return err
+		return dataEntity, err
 	}
-	return nil
+	return dataEntity, nil
 }
 
-func (r *repository) Update(ctx context.Context, author *author.AuthorModel) (status bool, err error) {
-
-	query := `update  ? SET name=? WHERE id=?`
+func (r *repository) Update(ctx context.Context, dataEntity *author.AuthorModel) (*author.AuthorModel, error) {
+	query := `update  authors SET name=? WHERE id=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
-		return
+		return dataEntity, err
 	}
 
-	_, err = stmt.ExecContext(ctx, author.GetTableName(), author.Name, author.Id)
+	_, err = stmt.ExecContext(ctx, dataEntity.Name, dataEntity.Id)
 	if err != nil {
-		return false, err
+		return dataEntity, err
 	}
-	return true, nil
+	return dataEntity, nil
 }
 
-func (r *repository) Delete(ctx context.Context, id string) (status bool, err error) {
-	entity := author.AuthorModel{}
-	query := "delete ? WHERE id=?"
+func (r *repository) Delete(ctx context.Context, id string) (err error) {
+	query := "delete authors WHERE id=?"
 	stmt, err := r.db.PrepareContext(ctx, string(query))
 	if err != nil {
 		return
 	}
 
-	_, err = stmt.ExecContext(ctx, entity.GetTableName(), id)
+	_, err = stmt.ExecContext(ctx, id)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
