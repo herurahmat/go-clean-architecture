@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/herurahmat/go-clean-architecture/internal/config"
-	"github.com/herurahmat/go-clean-architecture/internal/entity/author"
 	model "github.com/herurahmat/go-clean-architecture/internal/entity/book"
 	repository "github.com/herurahmat/go-clean-architecture/internal/entity/repository/book"
 	"log"
@@ -52,29 +51,13 @@ func (s *service) FindBookById(ctx context.Context, id string) (result model.Boo
 	return data, nil
 }
 
-func (s *service) FindBookByName(ctx context.Context, name string) (result model.BookModel, err error) {
-	if name == "" {
-		log.Println("name empty")
-		return model.BookModel{}, nil
-	}
-
-	data, err := s.repo.FindByName(ctx, name)
-
-	if err != nil {
-		log.Println("name ", name, " error ", err)
-		return model.BookModel{}, nil
-	}
-
-	return data, nil
-}
-
-func (s *service) CreateBook(ctx context.Context, author author.AuthorModel, book model.BookModel) (result model.BookModel, err error) {
+func (s *service) CreateBook(ctx context.Context, book model.BookModel) (result model.BookModel, err error) {
 
 	if book.GetBookTitle() == "" {
 		log.Println("book empty")
 	}
 
-	data, err := s.repo.Create(ctx, author, book)
+	data, err := s.repo.Create(ctx, book)
 
 	if err != nil {
 		log.Println("error:", err)
@@ -84,12 +67,12 @@ func (s *service) CreateBook(ctx context.Context, author author.AuthorModel, boo
 	return data, nil
 }
 
-func (s *service) UpdateBook(ctx context.Context, author author.AuthorModel, book model.BookModel) (result model.BookModel, err error) {
+func (s *service) UpdateBook(ctx context.Context, book model.BookModel) (result model.BookModel, err error) {
 	if book.GetBookTitle() == "" {
 		log.Println("book empty")
 	}
 
-	data, err := s.repo.Update(ctx, author, book)
+	data, err := s.repo.Update(ctx, book)
 
 	if err != nil {
 		log.Println("error:", err)

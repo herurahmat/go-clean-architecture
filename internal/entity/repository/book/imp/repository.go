@@ -3,14 +3,14 @@ package imp
 import (
 	"context"
 	"database/sql"
+	"github.com/herurahmat/go-clean-architecture/internal/helper"
 	"log"
 
-	"github.com/herurahmat/go-clean-architecture/internal/entity/author"
 	"github.com/herurahmat/go-clean-architecture/internal/entity/book"
 )
 
 const (
-	queryResult = `select 'books'.'*','authors'.'name' as authorName,'authors'.'id' as authorId from books join authors on 'books'.'author_id' = 'authors'.'id'`
+	queryResult = `select 'books.*','authors.name' as authorName,'authors.id' as authorId from books join authors on 'books.author_id' = 'authors.id'`
 )
 
 type repository struct {
@@ -53,7 +53,7 @@ func (r *repository) Get(ctx context.Context) (result []book.BookModel, err erro
 }
 
 func (r *repository) FindById(ctx context.Context, id string) (result book.BookModel, err error) {
-	query := queryResult + ` WHERE id=?`
+	query := queryResult + ` WHERE books.id=?`
 
 	statement, err := r.db.PrepareContext(ctx, string(query))
 
@@ -75,51 +75,31 @@ func (r *repository) FindById(ctx context.Context, id string) (result book.BookM
 	return
 }
 
-func (r *repository) FindByName(ctx context.Context, name string) (result book.BookModel, err error) {
-	query := queryResult + ` WHERE name LIKE '%?%'`
-
-	statement, err := r.db.PrepareContext(ctx, string(query))
-
-	if err != nil {
-		return book.BookModel{}, err
-	}
-
-	row := statement.QueryRowContext(ctx, name)
-
-	result = book.BookModel{}
-
-	err = row.Scan(
-		&result.Id,
-		&result.Title,
-		&result.AuthorId,
-		&result.AuthorName,
-	)
-
-	return
-}
-
-func (r *repository) Create(ctx context.Context, dataAuthor author.AuthorModel, dataEntity book.BookModel) (book.BookModel, error) {
-	query := `INSERT books SET name=?,author_id=?`
+func (r *repository) Create(ctx context.Context, dataEntity book.BookModel) (book.BookModel, error) {
+	uuid := helper.CreateNewUUID()
+	query := `INSERT books SET id=?,title=?,author_id=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		return dataEntity, err
 	}
 
-	_, err = stmt.ExecContext(ctx, dataEntity.Title, dataAuthor.Id)
+	_, err = stmt.ExecContext(ctx, uuid, dataEntity.Title, dataEntity.AuthorId)
 	if err != nil {
 		return dataEntity, err
 	}
+
+	dataEntity.Id = uuid
 	return dataEntity, nil
 }
 
-func (r *repository) Update(ctx context.Context, dataAuthor author.AuthorModel, dataEntity book.BookModel) (book.BookModel, error) {
-	query := `update  books SET name=?,author_id=? WHERE id=?`
+func (r *repository) Update(ctx context.Context, dataEntity book.BookModel) (book.BookModel, error) {
+	query := `update  books SET title=?,author_id=? WHERE id=?`
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		return dataEntity, err
 	}
 
-	_, err = stmt.ExecContext(ctx, dataEntity.Title, dataAuthor.GetAuthorId(), dataEntity.Id)
+	_, err = stmt.ExecContext(ctx, dataEntity.Title, dataEntity.GetBookAuthorId(), dataEntity.Id)
 	if err != nil {
 		return dataEntity, err
 	}

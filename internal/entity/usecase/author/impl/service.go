@@ -51,22 +51,6 @@ func (s *service) FindAuthorById(ctx context.Context, id string) (result model.A
 	return data, nil
 }
 
-func (s *service) FindAuthorByName(ctx context.Context, name string) (result model.AuthorModel, err error) {
-	if name == "" {
-		log.Println("name empty")
-		return model.AuthorModel{}, nil
-	}
-
-	data, err := s.repo.FindByName(ctx, name)
-
-	if err != nil {
-		log.Println("name ", name, " error ", err)
-		return model.AuthorModel{}, nil
-	}
-
-	return data, nil
-}
-
 func (s *service) CreateAuthor(ctx context.Context, author model.AuthorModel) (result model.AuthorModel, err error) {
 
 	if author.GetAuthorName() == "" {

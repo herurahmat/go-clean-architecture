@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/herurahmat/go-clean-architecture/internal/config"
 	"time"
 )

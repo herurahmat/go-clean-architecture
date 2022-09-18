@@ -1,4 +1,4 @@
-package config
+package helper
 
 import (
 	"encoding/json"
@@ -24,7 +24,19 @@ type View struct {
 	Pagination   Pages       `json:"pagination"`
 }
 
-func Response(w http2.ResponseWriter, view interface{}, httpStatus int) error {
+type response struct {
+	view View
+}
+
+func (r *response) JSON() []byte {
+	result, err := json.Marshal(r.view)
+	if err != nil {
+		return nil
+	}
+	return result
+}
+
+func ResponseHttp(w http2.ResponseWriter, view interface{}, httpStatus int) error {
 	res, err := json.Marshal(view)
 	if err != nil {
 		return err
@@ -49,7 +61,7 @@ func Recover(w http2.ResponseWriter, code, errorMessage string, httpStatus int) 
 	if msg != nil {
 		log.Println(string(debug.Stack()))
 
-		Response(w, View{
+		ResponseHttp(w, View{
 			Code:         code,
 			ErrorMessage: fmt.Sprintf("%v", msg),
 			Message:      errorMessage,

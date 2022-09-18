@@ -15,7 +15,7 @@ import (
 type Container struct {
 	AuthorService useCaseAuthor.AuthorService
 	BookService   useCaseBook.BookService
-	config        *config.Config
+	Config        *config.Config
 }
 
 func New() *Container {
@@ -37,6 +37,6 @@ func New() *Container {
 	return &Container{
 		AuthorService: authorService,
 		BookService:   bookService,
-		config:        c,
+		Config:        c,
 	}
 }

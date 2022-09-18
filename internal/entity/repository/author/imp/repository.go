@@ -67,27 +67,6 @@ func (r *repository) FindById(ctx context.Context, id string) (result author.Aut
 	return
 }
 
-func (r *repository) FindByName(ctx context.Context, name string) (result author.AuthorModel, err error) {
-	query := "select * from authors WHERE name LIKE '%?%'"
-
-	statement, err := r.db.PrepareContext(ctx, string(query))
-
-	if err != nil {
-		return author.AuthorModel{}, err
-	}
-
-	row := statement.QueryRowContext(ctx, name)
-
-	result = author.AuthorModel{}
-
-	err = row.Scan(
-		&result.Id,
-		&result.Name,
-	)
-
-	return
-}
-
 func (r *repository) Create(ctx context.Context, dataEntity author.AuthorModel) (author.AuthorModel, error) {
 	uuid := helper.CreateNewUUID()
 	query := `INSERT authors SET id=?,name=?`
