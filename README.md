@@ -20,3 +20,6 @@ For authentication header
 - http
 - Server
 - main
+
+How to run : <br>
+go run cmd/app/main.go
