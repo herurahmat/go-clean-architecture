@@ -18,6 +18,15 @@ func CreateNewBook(title string) *BookModel {
 	}
 }
 
+func CreateNewBookWithAuthor(title string, authorId string, authorName string) *BookModel {
+	return &BookModel{
+		Id:         helper.CreateNewUUID(),
+		Title:      title,
+		AuthorId:   authorId,
+		AuthorName: authorName,
+	}
+}
+
 func (bm *BookModel) GetBookId() string {
 	return bm.Id
 }
@@ -32,8 +41,4 @@ func (bm *BookModel) GetBookAuthorId() string {
 
 func (bm *BookModel) GetBookAuthorName() string {
 	return bm.AuthorName
-}
-
-func (bm *BookModel) GetTableName() string {
-	return "books"
 }

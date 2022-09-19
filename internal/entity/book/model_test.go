@@ -31,3 +31,15 @@ func TestGetBookId(t *testing.T) {
 
 	assert.NotNil(t, newBook.GetBookId())
 }
+
+func TestGetBookAuthorId(t *testing.T) {
+	newBook := CreateNewBookWithAuthor("Hamka", "1234", "ABC")
+
+	assert.NotNil(t, newBook.GetBookAuthorId())
+}
+
+func TestGetBookAuthorName(t *testing.T) {
+	newBook := CreateNewBookWithAuthor("Hamka", "1234", "ABC")
+
+	assert.NotNil(t, newBook.GetBookAuthorName())
+}
